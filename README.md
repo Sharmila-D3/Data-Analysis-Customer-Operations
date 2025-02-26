@@ -27,4 +27,11 @@ This project analyzes customer behavior, inventory management, and discount impa
 1. Clone the repo:
    ```sh
    git clone  https://github.com/Sharmila-D3/Data-Analysis-Customer-Operations.git
-   
+
+2. Navigate to the folder:
+
+cd Data-Analysis-Customer-Operations
+
+3. Open and run Jupyter notebooks:
+
+jupyter notebook
