@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/91770/Desktop/Data_Analysis_Assignment/sql/customer_operations.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="1"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="125"/><column_width id="3" width="968"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,7:mainorders1"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="customers" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="98"/><column index="2" value="165"/><column index="3" value="95"/><column index="4" value="124"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="delivery_performance" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="68"/><column index="2" value="98"/><column index="3" value="119"/><column index="4" value="106"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="orders1" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="68"/><column index="2" value="98"/><column index="3" value="91"/><column index="4" value="109"/><column index="5" value="165"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="orders1_1list.sql">SELECT * FROM orders1 LIMIT 5;</sql><sql name="pragma_check.sql">PRAGMA table_info(orders1);
+</sql><sql name="No_of_orders.sql">SELECT field2 AS customer_id, 
+       MAX(field3) AS last_order_date, 
+       COUNT(field1) AS order_count
+FROM orders1
+GROUP BY field2;
+</sql><sql name="max_orders.sql">SELECT field2 AS customer_id, 
+       MAX(field3) AS last_order_date, 
+       COUNT(field1) AS order_count
+FROM orders1
+GROUP BY field2
+HAVING MAX(field3) &lt; date('now', '-60 days')
+   AND COUNT(field1) &gt;= 2;
+</sql><sql name="avg_orders_customers.sql">WITH order_diffs AS (
+    SELECT 
+        field2 AS customer_id,
+        field3 AS order_date,
+        julianday(field3) - julianday(LAG(field3) OVER (PARTITION BY field2 ORDER BY field3)) AS diff_days
+    FROM orders1
+)
+SELECT 
+    customer_id, 
+    AVG(diff_days) AS avg_days_between_orders
+FROM order_diffs
+WHERE diff_days IS NOT NULL
+GROUP BY customer_id;
+</sql><sql name="maxspend_customers.sql">WITH customer_spend AS (
+    SELECT 
+        field2 AS customer_id, 
+        SUM(field5) AS total_spend,
+        COUNT(field1) AS order_count
+    FROM orders1
+    GROUP BY field2
+),
+percentile_threshold AS (
+    SELECT 
+        total_spend
+    FROM customer_spend
+    ORDER BY total_spend DESC
+    LIMIT 1 OFFSET (SELECT CAST(0.9 * COUNT(*) AS INT) FROM customer_spend) - 1
+)
+SELECT 
+    customer_id,
+    total_spend,
+    order_count,
+    ROUND(total_spend * 1.0 / order_count, 2) AS avg_order_value
+FROM customer_spend
+WHERE total_spend &gt;= (SELECT total_spend FROM percentile_threshold)
+</sql><sql name="SQL 7">SELECT 
+    o.field4 AS region,
+    ROUND(
+        100.0 * SUM(CASE WHEN d.field2 = 'On Time' THEN 1 ELSE 0 END)
+        / COUNT(*)
+    , 2) AS on_time_delivery_percentage
+FROM orders1 o
+JOIN delivery_performance d ON o.field1 = d.field1
+GROUP BY o.field4;
+</sql><sql name="on_time_delivery_percentage.sql">SELECT 
+    o.field4 AS region,
+    ROUND(
+        100.0 * SUM(CASE WHEN TRIM(UPPER(d.field3)) = 'ON TIME' THEN 1 ELSE 0 END)
+        / COUNT(*), 2
+    ) AS on_time_delivery_percentage
+FROM orders1 o
+JOIN delivery_performance d ON o.field1 = d.field1
+GROUP BY o.field4;
+</sql><current_tab id="7"/></tab_sql></sqlb_project>

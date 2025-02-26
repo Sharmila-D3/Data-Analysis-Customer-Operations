@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/91770/Desktop/Data_Analysis_Assignment/sql/grocery_delivery.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="125"/><column_width id="3" width="1140"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,5:mainUsers"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1">CREATE TABLE Users1 (
+  Id INTEGER PRIMARY KEY,
+  UserName TEXT,
+  CreatedAt TEXT
+);
+
+
+</sql><sql name="SQL 2">CREATE TABLE Orders (
+  Id INTEGER PRIMARY KEY,
+  BuyerId INTEGER,
+  CreatedAt TEXT,
+  Cancelled TEXT  -- You can use 'TRUE'/'FALSE' as text values
+);
+</sql><sql name="SQL 3">INSERT INTO Users (Id, UserName, CreatedAt) VALUES 
+(24280, 'Kayla Evans', '2023-03-06 23:42'),
+(24603, 'Nichole Robinson', '2023-06-21 11:04'),
+(24812, 'Amanda Luedtke', '2024-03-07 14:01'),
+(25039, 'Cassandra Nelson', '2023-03-17 20:41'),
+(25040, 'Deena Hougard', '2023-03-17 20:45'),
+(25851, 'John Horihan', '2023-04-02 17:49'),
+(25953, 'Katie Cvelbar', '2023-04-03 07:04');
+</sql><sql name="SQL 4">INSERT INTO Orders (Id, BuyerId, CreatedAt, Cancelled) VALUES 
+(67507, 24280, '2023-03-08 23:42', 'FALSE'),
+(67618, 25039, '2023-03-29 13:08', 'FALSE'),
+(68660, 24603, '2023-07-05 09:09', 'TRUE'),
+(68750, 24280, '2023-04-02 17:55', 'FALSE'),
+(69645, 25851, '2023-04-07 16:01', 'TRUE'),
+(70264, 24603, '2023-07-08 12:45', 'FALSE'),
+(70390, 25953, '2023-04-10 10:28', 'FALSE');
+</sql><sql name="avg_orders_customers1.sql">WITH ordered_orders AS (
+  SELECT 
+    BuyerId,
+    CreatedAt,
+    ROW_NUMBER() OVER (PARTITION BY BuyerId ORDER BY CreatedAt) AS order_num,
+    LAG(CreatedAt) OVER (PARTITION BY BuyerId ORDER BY CreatedAt) AS prev_order_date
+  FROM Orders
+  WHERE Cancelled = 'FALSE'
+)
+SELECT 
+  AVG(JULIANDAY(CreatedAt) - JULIANDAY(prev_order_date)) AS avg_interval_days
+FROM ordered_orders
+WHERE order_num BETWEEN 2 AND 10;
+</sql><current_tab id="1"/></tab_sql></sqlb_project>
